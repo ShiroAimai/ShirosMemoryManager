@@ -3,7 +3,7 @@
 
 typedef size_t;
 
-constexpr size_t  DEFAULT_CHUNK_SIZE = 4096;
+constexpr size_t DEFAULT_CHUNK_SIZE = 4096;
 
 class FixedAllocator
 {
@@ -20,6 +20,7 @@ public:
 
 	size_t GetBlockSize() const { return m_blockSize; }
 private:
+	/*Ensure Chunk is known only by a FixedAllocator*/
 	struct Chunk
 	{
 		void Init(size_t blockSize, unsigned char blocks);

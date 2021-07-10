@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
+#include "FixedAllocator.h"
 
 typedef size_t;
-class FixedAllocator;
 
 constexpr size_t MAX_SMALL_OBJECT_SIZE = 64;
 

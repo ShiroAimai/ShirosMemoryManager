@@ -1,7 +1,11 @@
 #pragma once
 #include <iostream>
+#include "ShirosAllocator.h"
+
 int main()
 {
-	std::cout << "Main" << std::endl;
+	size_t ObjSize = 32;
+	ShirosAllocator Alloc(ObjSize, MAX_SMALL_OBJECT_SIZE);
+
 	return 0;
 }

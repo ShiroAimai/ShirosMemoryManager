@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ShirosAllocator.h"
-#include "FixedAllocator.h"
 
 namespace {
 	auto FixedAllocatorComparator = [](const FixedAllocator& Allocator, size_t bytes) { return Allocator.GetBlockSize() == bytes; };
