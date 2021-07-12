@@ -3,6 +3,13 @@
 
 namespace {
 	auto FixedAllocatorComparator = [](const FixedAllocator& Allocator, size_t bytes) { return Allocator.GetBlockSize() == bytes; };
+	struct CompareFixedAllocatorSize
+	{
+		bool operator()(const FixedAllocator& x, std::size_t numBytes) const
+		{
+			return x.GetBlockSize() < numBytes;
+		}
+	};
 }
 
 ShirosSmallObjAllocator::ShirosSmallObjAllocator(size_t chunkSize, size_t maxSize)

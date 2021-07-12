@@ -7,7 +7,7 @@ void FixedAllocator::Chunk::Init(size_t blockSize, unsigned char blocks)
 	assert(blocks > 0); //chunk must be composed of at least one element (i.e an element of max size)
 	assert((blockSize * blocks) / blockSize == blocks); // check for overflow
 
-	m_data = new unsigned char[blockSize * blocks]; //reserve free store memory for the chunk. UNIQUE POINT FOR REQUESTING MEMORY
+	m_data = new unsigned char[blockSize * blocks]; //reserve free store memory for the chunk. 
 	Reset(blockSize, blocks);
 }
 
