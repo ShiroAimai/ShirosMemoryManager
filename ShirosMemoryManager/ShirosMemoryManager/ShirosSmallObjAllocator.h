@@ -6,16 +6,16 @@ typedef size_t;
 
 constexpr size_t MAX_SMALL_OBJECT_SIZE = 64;
 
-class ShirosAllocator
+class ShirosSmallObjAllocator
 {
 public:
-	ShirosAllocator(size_t chunkSize, size_t maxSize);
+	ShirosSmallObjAllocator(size_t chunkSize, size_t maxSize);
 
 	void* Allocate(size_t bytes);
 	void Deallocate(void* p_obj, size_t size_obj);
 
-	ShirosAllocator(const ShirosAllocator&) = delete;
-	ShirosAllocator& operator=(const ShirosAllocator&) = delete;
+	ShirosSmallObjAllocator(const ShirosSmallObjAllocator&) = delete;
+	ShirosSmallObjAllocator& operator=(const ShirosSmallObjAllocator&) = delete;
 private:
 	using AllocatorPool = std::vector<FixedAllocator>;
 	AllocatorPool m_Pool;

@@ -1,17 +1,18 @@
 #include "pch.h"
-#include "ShirosAllocator.h"
+#include "ShirosSmallObjAllocator.h"
 
 namespace {
 	auto FixedAllocatorComparator = [](const FixedAllocator& Allocator, size_t bytes) { return Allocator.GetBlockSize() == bytes; };
 }
-ShirosAllocator::ShirosAllocator(size_t chunkSize, size_t maxSize)
+
+ShirosSmallObjAllocator::ShirosSmallObjAllocator(size_t chunkSize, size_t maxSize)
 	: m_chunkSize(chunkSize), m_maxAllowedObjectSize(maxSize),
 	m_lastAllocatorUsedForDeallocation(nullptr), m_lastAllocatorUsedForAllocation(nullptr)
 {
 
 }
 
-void* ShirosAllocator::Allocate(size_t bytes)
+void* ShirosSmallObjAllocator::Allocate(size_t bytes)
 {
 	if (bytes > m_maxAllowedObjectSize)
 	{
@@ -32,7 +33,7 @@ void* ShirosAllocator::Allocate(size_t bytes)
 	//if the allocator that manage this size_t is nowhere to be found then insert a new Allocator that'll do the work
 	if (it == m_Pool.end() || it->GetBlockSize() != bytes)
 	{
-		it = m_Pool.insert(it, FixedAllocator(bytes));
+		it = m_Pool.insert(it, FixedAllocator(m_chunkSize, bytes));
 		m_lastAllocatorUsedForDeallocation = &*m_Pool.begin();
 	}
 	
@@ -41,7 +42,7 @@ void* ShirosAllocator::Allocate(size_t bytes)
 	return m_lastAllocatorUsedForAllocation->Allocate();
 }
 
-void ShirosAllocator::Deallocate(void* p_obj, size_t size_obj)
+void ShirosSmallObjAllocator::Deallocate(void* p_obj, size_t size_obj)
 {
 	//if size is greater than the max allowed one fallback to global delete operator
 	if (size_obj > m_maxAllowedObjectSize)

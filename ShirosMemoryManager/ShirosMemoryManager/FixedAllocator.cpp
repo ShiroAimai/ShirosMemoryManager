@@ -7,7 +7,7 @@ void FixedAllocator::Chunk::Init(size_t blockSize, unsigned char blocks)
 	assert(blocks > 0); //chunk must be composed of at least one element (i.e an element of max size)
 	assert((blockSize * blocks) / blockSize == blocks); // check for overflow
 
-	m_data = new unsigned char[blockSize * blocks]; //reserve free store memory for the chunk
+	m_data = new unsigned char[blockSize * blocks]; //reserve free store memory for the chunk. UNIQUE POINT FOR REQUESTING MEMORY
 	Reset(blockSize, blocks);
 }
 
@@ -62,15 +62,15 @@ void FixedAllocator::Chunk::Release()
 	delete[] m_data;
 }
 
-FixedAllocator::FixedAllocator(size_t blockSize /*= 0*/)
-	: m_blockSize(blockSize),
+FixedAllocator::FixedAllocator(size_t ChunkSize /*= 0*/,size_t BlockSize /*= 0*/)
+	: m_blockSize(BlockSize),
 	m_lastChunkUsedForAllocation(nullptr),
 	m_lastChunkUsedForDeallocation(nullptr)
 {
-	assert(blockSize > 0); //ensure you're not creating an allocator of size 0, min. 1
+	assert(BlockSize > 0); //ensure you're not creating an allocator of size 0, min. 1
 	prev = next = this; 
-
-	size_t numBlocks = DEFAULT_CHUNK_SIZE / blockSize;
+	size_t AllocatorChunkSize = ChunkSize > 0 ? ChunkSize : DEFAULT_CHUNK_SIZE;
+	size_t numBlocks = AllocatorChunkSize / BlockSize;
 	
 	if (numBlocks > UCHAR_MAX)
 	{
@@ -78,7 +78,7 @@ FixedAllocator::FixedAllocator(size_t blockSize /*= 0*/)
 	}
 	else if (numBlocks == 0)
 	{
-		numBlocks = 8 * blockSize;
+		numBlocks = 8 * BlockSize;
 	}
 
 	m_numBlocks = static_cast<unsigned char>(numBlocks);
@@ -113,10 +113,11 @@ FixedAllocator& FixedAllocator::operator=(const FixedAllocator& other)
 
 FixedAllocator::~FixedAllocator()
 {
-	if (prev != this)
+	if (prev != this || next != this)
 	{
 		prev->next = next;
 		next->prev = prev;
+		prev = next = nullptr;
 		return;
 	}
 
@@ -124,7 +125,7 @@ FixedAllocator::~FixedAllocator()
 	
 	for (Chunks::iterator it = m_chunks.begin(); it != m_chunks.end(); ++it)
 	{
-		assert(it->m_blocksAvailable == m_numBlocks); //assert all chunks for this allocator are empty
+		//assert(it->m_blocksAvailable == m_numBlocks); //assert chunk is empty for a safe delete
 		it->Release();
 	}
 }

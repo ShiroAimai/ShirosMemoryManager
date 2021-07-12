@@ -8,7 +8,7 @@ constexpr size_t DEFAULT_CHUNK_SIZE = 4096;
 class FixedAllocator
 {
 public:
-	explicit FixedAllocator(size_t blockSize = 0);
+	explicit FixedAllocator(size_t ChunkSize = 0, size_t BlockSize = 0);
 	FixedAllocator(const FixedAllocator& other);
 	FixedAllocator& operator=(const FixedAllocator& other);
 	~FixedAllocator();
