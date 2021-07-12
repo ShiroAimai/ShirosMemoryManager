@@ -9,7 +9,7 @@ constexpr size_t MAX_SMALL_OBJECT_SIZE = 64;
 class ShirosSmallObjAllocator
 {
 public:
-	ShirosSmallObjAllocator(size_t chunkSize, size_t maxSize);
+	ShirosSmallObjAllocator(size_t chunkSize);
 
 	void* Allocate(size_t bytes);
 	void Deallocate(void* p_obj, size_t size_obj);
@@ -23,6 +23,5 @@ private:
 	FixedAllocator* m_lastAllocatorUsedForAllocation;
 	FixedAllocator* m_lastAllocatorUsedForDeallocation;
 	size_t m_chunkSize;
-	size_t m_maxAllowedObjectSize;
 };
 

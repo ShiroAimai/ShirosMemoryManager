@@ -56,7 +56,7 @@ void PerformanceTest(ShirosSmallObjAllocator& SmallObjAllocator)
 
 int main()
 {
-	ShirosSmallObjAllocator SmallObjAllocator(DEFAULT_CHUNK_SIZE, MAX_SMALL_OBJECT_SIZE);
+	ShirosSmallObjAllocator SmallObjAllocator(DEFAULT_CHUNK_SIZE);
 	PerformanceTest(SmallObjAllocator);
 
 	return 0;

@@ -12,8 +12,8 @@ namespace {
 	};
 }
 
-ShirosSmallObjAllocator::ShirosSmallObjAllocator(size_t chunkSize, size_t maxSize)
-	: m_chunkSize(chunkSize), m_maxAllowedObjectSize(maxSize),
+ShirosSmallObjAllocator::ShirosSmallObjAllocator(size_t chunkSize)
+	: m_chunkSize(chunkSize),
 	m_lastAllocatorUsedForDeallocation(nullptr), m_lastAllocatorUsedForAllocation(nullptr)
 {
 
@@ -21,12 +21,6 @@ ShirosSmallObjAllocator::ShirosSmallObjAllocator(size_t chunkSize, size_t maxSiz
 
 void* ShirosSmallObjAllocator::Allocate(size_t bytes)
 {
-	if (bytes > m_maxAllowedObjectSize)
-	{
-		//our allocator can't handle object of this size
-		//fallback on global default allocator
-		return ::operator new(bytes);
-	}
 
 	//check if we already allocated an allocator, and if this one manage Chunk of the desired size
 	if (m_lastAllocatorUsedForAllocation && m_lastAllocatorUsedForAllocation->GetBlockSize() == bytes)
@@ -51,11 +45,6 @@ void* ShirosSmallObjAllocator::Allocate(size_t bytes)
 
 void ShirosSmallObjAllocator::Deallocate(void* p_obj, size_t size_obj)
 {
-	//if size is greater than the max allowed one fallback to global delete operator
-	if (size_obj > m_maxAllowedObjectSize)
-	{
-		return ::operator delete(p_obj);
-	}
 
 	//check if the last time we deallocated something from an allocator, and if that allocator is of the desired size
 	//if it is, then use that one
