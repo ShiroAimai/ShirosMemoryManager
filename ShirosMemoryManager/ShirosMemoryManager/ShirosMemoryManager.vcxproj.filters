@@ -30,6 +30,12 @@
     <ClInclude Include="ShirosMemoryManager.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalShirosMemoryManager.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="Mallocator.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

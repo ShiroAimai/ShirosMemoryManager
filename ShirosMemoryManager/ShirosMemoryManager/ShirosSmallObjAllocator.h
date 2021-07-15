@@ -1,10 +1,11 @@
 #pragma once
 #include <vector>
+#include <memory>
 #include "FixedAllocator.h"
-
-typedef size_t;
+#include "Mallocator.h"
 
 constexpr size_t MAX_SMALL_OBJECT_SIZE = 64;
+
 
 class ShirosSmallObjAllocator
 {
@@ -17,11 +18,11 @@ public:
 	ShirosSmallObjAllocator(const ShirosSmallObjAllocator&) = delete;
 	ShirosSmallObjAllocator& operator=(const ShirosSmallObjAllocator&) = delete;
 private:
-	using AllocatorPool = std::vector<FixedAllocator>;
+	using AllocatorPool = std::vector<FixedAllocator, Mallocator<FixedAllocator>>;
 	AllocatorPool m_Pool;
-
-	FixedAllocator* m_lastAllocatorUsedForAllocation;
-	FixedAllocator* m_lastAllocatorUsedForDeallocation;
+	
+	FixedAllocator* m_lastAllocatorUsedForAllocation = nullptr;
+	FixedAllocator* m_lastAllocatorUsedForDeallocation = nullptr;
 	size_t m_chunkSize;
 };
 

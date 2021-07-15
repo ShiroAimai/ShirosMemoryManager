@@ -1,6 +1,9 @@
 #pragma once
+#define GLOBAL_SHIRO_MM
+
 #include <iostream>
-#include "ShirosSmallObjAllocator.h"
+#include "GlobalShirosMemoryManager.h"
+#include "ShirosMemoryManager.h"
 #include <ctime>
 #include <chrono>
 
@@ -19,7 +22,7 @@ struct SmallObjTest {
 	short c;
 };
 
-void PerformanceTest(ShirosSmallObjAllocator& SmallObjAllocator)
+void SmallObjAllocatorPerformanceTest(ShirosSmallObjAllocator& SmallObjAllocator)
 {
 	std::vector<void*> PointersToSmallObjTest;
 	auto start_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -56,8 +59,6 @@ void PerformanceTest(ShirosSmallObjAllocator& SmallObjAllocator)
 
 int main()
 {
-	ShirosSmallObjAllocator SmallObjAllocator(DEFAULT_CHUNK_SIZE);
-	PerformanceTest(SmallObjAllocator);
 
 	return 0;
 }

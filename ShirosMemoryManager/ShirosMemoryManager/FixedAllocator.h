@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
-
-typedef size_t;
+#include "Mallocator.h"
 
 constexpr size_t DEFAULT_CHUNK_SIZE = 4096;
 
@@ -42,16 +41,16 @@ private:
 	/*How many blocks a Chunk can contain*/
 	unsigned char m_numBlocks;
 
-	using Chunks = std::vector<Chunk>;
+	using Chunks = std::vector<Chunk, Mallocator<Chunk>>;
 	/* All the chunks allocated for this instance of FixedAllocator*/
 	Chunks m_chunks;
 	/*The last chunk in which we allocated a block*/
-	Chunk* m_lastChunkUsedForAllocation;
+	Chunk* m_lastChunkUsedForAllocation = nullptr;
 	/*The last chunk in which we released a block*/
-	Chunk* m_lastChunkUsedForDeallocation;
+	Chunk* m_lastChunkUsedForDeallocation = nullptr;
 
 	//boost and ensure copy semantics
-	mutable const FixedAllocator* prev;
-	mutable const FixedAllocator* next;
+	mutable const FixedAllocator* prev = nullptr;
+	mutable const FixedAllocator* next = nullptr;
 };
 

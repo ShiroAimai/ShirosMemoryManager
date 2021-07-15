@@ -3,18 +3,10 @@
 
 namespace {
 	auto FixedAllocatorComparator = [](const FixedAllocator& Allocator, size_t bytes) { return Allocator.GetBlockSize() == bytes; };
-	struct CompareFixedAllocatorSize
-	{
-		bool operator()(const FixedAllocator& x, std::size_t numBytes) const
-		{
-			return x.GetBlockSize() < numBytes;
-		}
-	};
 }
 
 ShirosSmallObjAllocator::ShirosSmallObjAllocator(size_t chunkSize)
-	: m_chunkSize(chunkSize),
-	m_lastAllocatorUsedForDeallocation(nullptr), m_lastAllocatorUsedForAllocation(nullptr)
+	: m_chunkSize(chunkSize)
 {
 
 }
@@ -61,5 +53,4 @@ void ShirosSmallObjAllocator::Deallocate(void* p_obj, size_t size_obj)
 	assert(it->GetBlockSize() == size_obj);
 	m_lastAllocatorUsedForDeallocation = &*it;
 	m_lastAllocatorUsedForDeallocation->Deallocate(p_obj);
-
 }

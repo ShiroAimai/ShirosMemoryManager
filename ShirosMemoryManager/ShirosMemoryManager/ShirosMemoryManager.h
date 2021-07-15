@@ -1,27 +1,33 @@
 #pragma once
 #include "ShirosSmallObjAllocator.h"
 
-class ShirosMemoryManager
+#define MM_NEW(SIZE) ShirosMemoryManager::Allocate(SIZE, __FILE__, __LINE__)
+#define MM_DELETE(PTR, SIZE) ShirosMemoryManager::Deallocate(PTR, SIZE, __FILE__, __LINE__)
+
+#define MM_NEW_A(LENGTH, SIZE) ShirosMemoryManager::Allocate(LENGTH * SIZE, __FILE__, __LINE__)
+#define MM_DELETE_A(PTR, LENGTH, SIZE) ShirosMemoryManager::Deallocate(PTR, LENGTH * SIZE, __FILE__, __LINE__)
+
+#define MM_MALLOC(SIZE) ShirosMemoryManager::Allocate(SIZE, __FILE__, __LINE__)
+#define MM_FREE(PTR, SIZE) ShirosMemoryManager::Deallocate(PTR, SIZE, __FILE__, __LINE__)
+
+class ShirosMemoryManager /*Singleton*/
 {
 public:
-	ShirosMemoryManager(size_t ChunkSize, size_t MaxSize);
-
 	ShirosMemoryManager(const ShirosMemoryManager&) = delete;
 	ShirosMemoryManager& operator=(const ShirosMemoryManager&) = delete;
 
-	void* MM_NEW(size_t ObjSize);
-	void* MM_NEW_A(size_t ObjSize);
+	static size_t CHUNK_SIZE;
+	static size_t MAX_SMALL_OBJ_SIZE;
 
-	void MM_DELETE(void* ptr, size_t ObjSize);
-	void MM_DELETE_A(void* ptr, size_t ObjSize);
-
-	void* MM_MALLOC(size_t ObjSize);
-	void MM_FREE(void* ptr, size_t ObjSize);
+	static void* Allocate(size_t ObjSize, char const* file, unsigned long line);
+	static void Deallocate(void* ptr, size_t ObjSize, char const* file, unsigned long line);
+	
 private:
-	size_t m_maxAllowedObjectSize;
+	ShirosMemoryManager();
+	bool CanBeHandledBySmallObjAllocator(size_t ObjSize) const;
+
+	static ShirosMemoryManager& Get();
 
 	ShirosSmallObjAllocator m_smallObjAllocator;
-
-	bool CanBeHandledBySmallObjAllocator(size_t ObjSize) const;
 };
 
