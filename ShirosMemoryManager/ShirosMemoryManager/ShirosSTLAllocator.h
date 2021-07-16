@@ -41,7 +41,7 @@ public:
 
 	inline void deallocate(pointer p, size_type n)
 	{
-		MM_DELETE(p, n * sizeof(T));
+		MM_DELETE(p, n);
 	}
 
 	inline void construct(pointer p, const T& val)

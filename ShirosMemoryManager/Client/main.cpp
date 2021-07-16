@@ -101,6 +101,5 @@ int main()
 	std::vector<SmallObjTest, ShirosSTLAllocator<SmallObjTest>> a;
 	a.push_back(SmallObjTest());
 #endif
-
-	return 0;
+return 0;
 }
