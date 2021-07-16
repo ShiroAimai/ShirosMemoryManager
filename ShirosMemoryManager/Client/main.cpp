@@ -1,13 +1,21 @@
 #pragma once
-//#define GLOBAL_SHIRO_MM
+
+//TEST MODES
+#define GLOBAL_OP_OVERLOAD
+//#define MM_PERFORMANCE
+//#define STL_ALLOCATOR
 
 #include <iostream>
-#include "GlobalShirosMemoryManager.h"
 #include "ShirosMemoryManager.h"
 #include "ShirosSTLAllocator.h"
 #include <ctime>
 #include <chrono>
 
+#ifdef GLOBAL_OP_OVERLOAD
+#define GLOBAL_SHIRO_MM
+#endif
+
+#include "GlobalShirosMemoryManager.h"
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
@@ -60,9 +68,39 @@ void MMPerformanceTest()
 
 int main()
 {
-	/*void* ptr = new SmallObjTest();
-	::operator delete(ptr, sizeof(SmallObjTest));*/
-	/*std::vector<SmallObjTest, ShirosSTLAllocator<SmallObjTest>> a;
-	a.push_back(SmallObjTest());*/
+#ifdef MM_PERFORMANCE
+	MMPerformanceTest();
+#endif
+#ifdef GLOBAL_OP_OVERLOAD
+
+	ShirosMemoryManager::PrintMemoryState();
+	void* ptr = new SmallObjTest();
+	void* ptr2 = new SmallObjTest();
+	void* ptr3 = new SmallObjTest();
+	void* ptr4 = new SmallObjTest();
+	void* ptr5 = new SmallObjTest();
+	void* ptr6 = new SmallObjTest();
+	void* ptr7 = new SmallObjTest();
+	void* ptr8 = new SmallObjTest();
+	void* ptr9 = new SmallObjTest();
+	void* ptr10 = new SmallObjTest();
+	ShirosMemoryManager::PrintMemoryState();
+	::operator delete(ptr, sizeof(SmallObjTest));
+	::operator delete(ptr2, sizeof(SmallObjTest));
+	::operator delete(ptr3, sizeof(SmallObjTest));
+	::operator delete(ptr4, sizeof(SmallObjTest));
+	::operator delete(ptr5, sizeof(SmallObjTest));
+	::operator delete(ptr6, sizeof(SmallObjTest));
+	::operator delete(ptr7, sizeof(SmallObjTest));
+	::operator delete(ptr8, sizeof(SmallObjTest));
+	::operator delete(ptr9, sizeof(SmallObjTest));
+	::operator delete(ptr10, sizeof(SmallObjTest));
+	ShirosMemoryManager::PrintMemoryState();
+#endif
+#ifdef STL_ALLOCATOR
+	std::vector<SmallObjTest, ShirosSTLAllocator<SmallObjTest>> a;
+	a.push_back(SmallObjTest());
+#endif
+
 	return 0;
 }

@@ -17,6 +17,8 @@ public:
 
 	ShirosSmallObjAllocator(const ShirosSmallObjAllocator&) = delete;
 	ShirosSmallObjAllocator& operator=(const ShirosSmallObjAllocator&) = delete;
+
+	inline size_t GetTotalAllocatedMemory() const {	return m_totMemoryAllocated; }
 private:
 	using AllocatorPool = std::vector<FixedAllocator, Mallocator<FixedAllocator>>;
 	AllocatorPool m_Pool;
@@ -24,5 +26,6 @@ private:
 	FixedAllocator* m_lastAllocatorUsedForAllocation = nullptr;
 	FixedAllocator* m_lastAllocatorUsedForDeallocation = nullptr;
 	size_t m_chunkSize;
+	size_t m_totMemoryAllocated = 0;
 };
 

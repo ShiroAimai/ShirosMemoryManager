@@ -31,7 +31,15 @@ void* ShirosMemoryManager::Allocate(size_t ObjSize, char const* file, unsigned l
 		//todo general purpose allocation
 	}
 
-	cout << "Allocated memory starting from address " << p_res << endl;
+	if (p_res)
+	{
+		cout << "Allocated memory starting from address " << p_res << endl;
+		Instance.m_mem_used += ObjSize;
+	}
+	else
+	{
+		cout << "Allocation didn't complete correctly" << endl;
+	}
 	return p_res;
 }
 
@@ -43,6 +51,8 @@ void ShirosMemoryManager::Deallocate(void* ptr, size_t ObjSize, char const* file
 	if (Instance.CanBeHandledBySmallObjAllocator(ObjSize))
 	{
 		Instance.m_smallObjAllocator.Deallocate(ptr, ObjSize);
+		Instance.m_mem_used -= ObjSize;
+		Instance.m_mem_freed += ObjSize;
 	}
 	else 
 	{
@@ -53,4 +63,15 @@ void ShirosMemoryManager::Deallocate(void* ptr, size_t ObjSize, char const* file
 bool ShirosMemoryManager::CanBeHandledBySmallObjAllocator(size_t ObjSize) const
 {
 	return ObjSize <= MAX_SMALL_OBJECT_SIZE;
+}
+
+void ShirosMemoryManager::PrintMemoryState()
+{
+	ShirosMemoryManager& Instance = ShirosMemoryManager::Get();
+
+	size_t m_totAllocatedMemory = Instance.m_smallObjAllocator.GetTotalAllocatedMemory(); //add also memory for general purpose allocator
+	cout << "===== MEMORY STATE ======" << endl;
+	cout << "| Total Memory Allocated: " << m_totAllocatedMemory << " |" << endl;
+	cout << "| Memory Used: " << Instance.m_mem_used << " |" << endl;
+	cout << "| Memory Freed: " << Instance.m_mem_freed << " |" << endl;
 }

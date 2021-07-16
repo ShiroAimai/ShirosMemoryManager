@@ -22,11 +22,15 @@ public:
 	static void* Allocate(size_t ObjSize, char const* file, unsigned long line);
 	static void Deallocate(void* ptr, size_t ObjSize, char const* file, unsigned long line);
 	
+	static void PrintMemoryState();
 private:
 	ShirosMemoryManager();
 	bool CanBeHandledBySmallObjAllocator(size_t ObjSize) const;
 
 	static ShirosMemoryManager& Get();
+
+	size_t m_mem_used = 0;
+	size_t m_mem_freed = 0;
 
 	ShirosSmallObjAllocator m_smallObjAllocator;
 };

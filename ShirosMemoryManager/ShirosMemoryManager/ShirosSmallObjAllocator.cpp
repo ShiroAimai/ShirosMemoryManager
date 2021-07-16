@@ -31,7 +31,10 @@ void* ShirosSmallObjAllocator::Allocate(size_t bytes)
 	
 	//either we found an allocator or we're using the one we just inserted
 	m_lastAllocatorUsedForAllocation = &*it;
-	return m_lastAllocatorUsedForAllocation->Allocate();
+	m_totMemoryAllocated -= it->GetTotalAllocatedMemory(); //remove current value
+	void* p_res = m_lastAllocatorUsedForAllocation->Allocate();
+	m_totMemoryAllocated += it->GetTotalAllocatedMemory(); //add new value
+	return p_res;
 }
 
 void ShirosSmallObjAllocator::Deallocate(void* p_obj, size_t size_obj)
