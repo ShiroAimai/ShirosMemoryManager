@@ -21,15 +21,18 @@ void* ShirosMemoryManager::Allocate(size_t ObjSize, char const* file, unsigned l
 	cout << "Requested allocation of " << ObjSize << " bytes requested by line " << line << " in file " << file << endl;
 	
 	ShirosMemoryManager& Instance = ShirosMemoryManager::Get();
+	void* p_res = nullptr;
 	if (Instance.CanBeHandledBySmallObjAllocator(ObjSize))
 	{
-		return Instance.m_smallObjAllocator.Allocate(ObjSize);
+		p_res = Instance.m_smallObjAllocator.Allocate(ObjSize);
 	}
 	else
 	{
 		//todo general purpose allocation
-		return nullptr;
 	}
+
+	cout << "Allocated memory starting from address " << p_res << endl;
+	return p_res;
 }
 
 void ShirosMemoryManager::Deallocate(void* ptr, size_t ObjSize, char const* file, unsigned long line)

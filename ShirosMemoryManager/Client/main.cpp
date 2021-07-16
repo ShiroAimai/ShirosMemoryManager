@@ -62,6 +62,7 @@ int main()
 {
 	/*void* ptr = new SmallObjTest();
 	::operator delete(ptr, sizeof(SmallObjTest));*/
-	
+	/*std::vector<SmallObjTest, ShirosSTLAllocator<SmallObjTest>> a;
+	a.push_back(SmallObjTest());*/
 	return 0;
 }
