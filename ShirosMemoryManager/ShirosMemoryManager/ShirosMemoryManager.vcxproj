@@ -158,6 +158,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="ShirosMemoryManager.h" />
     <ClInclude Include="ShirosSmallObjAllocator.h" />
+    <ClInclude Include="ShirosSTLAllocator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FixedAllocator.cpp" />

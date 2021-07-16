@@ -36,6 +36,9 @@
     <ClInclude Include="Mallocator.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="ShirosSTLAllocator.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

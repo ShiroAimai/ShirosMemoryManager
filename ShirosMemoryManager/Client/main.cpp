@@ -1,9 +1,10 @@
 #pragma once
-#define GLOBAL_SHIRO_MM
+//#define GLOBAL_SHIRO_MM
 
 #include <iostream>
 #include "GlobalShirosMemoryManager.h"
 #include "ShirosMemoryManager.h"
+#include "ShirosSTLAllocator.h"
 #include <ctime>
 #include <chrono>
 
@@ -22,19 +23,19 @@ struct SmallObjTest {
 	short c;
 };
 
-void SmallObjAllocatorPerformanceTest(ShirosSmallObjAllocator& SmallObjAllocator)
+void MMPerformanceTest()
 {
 	std::vector<void*> PointersToSmallObjTest;
 	auto start_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	for (int i = 0; i < 1000000; ++i)
 	{
-		void* ptr = SmallObjAllocator.Allocate(sizeof(SmallObjTest));
+		void* ptr = MM_NEW(sizeof(SmallObjTest));
 		SmallObjTest* p = new (ptr) SmallObjTest();
 		PointersToSmallObjTest.push_back(ptr);
 	}
 	for (int i = 0; i < 1000000; ++i)
 	{
-		SmallObjAllocator.Deallocate(PointersToSmallObjTest[i], sizeof(SmallObjTest));
+		MM_DELETE(PointersToSmallObjTest[i], sizeof(SmallObjTest));
 	}
 	auto end_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	long long delta = end_millisec - start_millisec;
@@ -59,6 +60,8 @@ void SmallObjAllocatorPerformanceTest(ShirosSmallObjAllocator& SmallObjAllocator
 
 int main()
 {
-
+	/*void* ptr = new SmallObjTest();
+	::operator delete(ptr, sizeof(SmallObjTest));*/
+	
 	return 0;
 }

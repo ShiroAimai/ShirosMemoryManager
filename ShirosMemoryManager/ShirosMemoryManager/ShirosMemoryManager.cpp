@@ -18,7 +18,7 @@ ShirosMemoryManager::ShirosMemoryManager()
 
 void* ShirosMemoryManager::Allocate(size_t ObjSize, char const* file, unsigned long line)
 {
-	cout << "Allocation of " << ObjSize << " bytes requested by line " << line << " in file " << file << endl;
+	cout << "Requested allocation of " << ObjSize << " bytes requested by line " << line << " in file " << file << endl;
 	
 	ShirosMemoryManager& Instance = ShirosMemoryManager::Get();
 	if (Instance.CanBeHandledBySmallObjAllocator(ObjSize))
@@ -34,7 +34,7 @@ void* ShirosMemoryManager::Allocate(size_t ObjSize, char const* file, unsigned l
 
 void ShirosMemoryManager::Deallocate(void* ptr, size_t ObjSize, char const* file, unsigned long line)
 {
-	cout << "Deallocation of " << ObjSize << " bytes from address " << ptr << " requested by line " << line << " in file " << file << endl;
+	cout << "Requested deallocation of " << ObjSize << " bytes from address " << ptr << " requested by line " << line << " in file " << file << endl;
 	
 	ShirosMemoryManager& Instance = ShirosMemoryManager::Get();
 	if (Instance.CanBeHandledBySmallObjAllocator(ObjSize))

@@ -16,7 +16,7 @@ void* FixedAllocator::Chunk::Allocate(size_t blockSize)
 	if (m_blocksAvailable == 0) return nullptr;
 
 	assert((m_firstAvailableBlock * blockSize) / blockSize == m_firstAvailableBlock); //overflow check
-
+	
 	unsigned char* result = m_data + (m_firstAvailableBlock * blockSize); //simple arithmetic operation to find new block start
 	m_firstAvailableBlock = *result; //copy index of new block
 	
