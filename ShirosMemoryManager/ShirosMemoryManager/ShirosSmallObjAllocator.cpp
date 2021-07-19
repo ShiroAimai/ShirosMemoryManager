@@ -5,13 +5,13 @@ namespace {
 	auto FixedAllocatorComparator = [](const FixedAllocator& Allocator, size_t bytes) { return Allocator.GetBlockSize() < bytes; };
 }
 
-ShirosSmallObjAllocator::ShirosSmallObjAllocator(size_t chunkSize)
+ShirosSmallObjAllocator::ShirosSmallObjAllocator(const size_t chunkSize)
 	: m_chunkSize(chunkSize)
 {
 
 }
 
-void* ShirosSmallObjAllocator::Allocate(size_t bytes)
+void* ShirosSmallObjAllocator::Allocate(const size_t bytes)
 {
 	//check if we already allocated an allocator, and if this one manage Chunk of the desired size
 	if (m_lastAllocatorUsedForAllocation && m_lastAllocatorUsedForAllocation->GetBlockSize() == bytes)
@@ -37,7 +37,7 @@ void* ShirosSmallObjAllocator::Allocate(size_t bytes)
 	return p_res;
 }
 
-void ShirosSmallObjAllocator::Deallocate(void* p_obj, size_t size_obj)
+void ShirosSmallObjAllocator::Deallocate(void* p_obj, const size_t size_obj)
 {
 	//check if the last time we deallocated something from an allocator, and if that allocator is of the desired size
 	//if it is, then use that one

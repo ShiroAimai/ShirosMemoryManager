@@ -34,7 +34,7 @@ public:
 		if (n > std::numeric_limits<size_type>::max() / sizeof(T)) {
 			throw std::bad_array_new_length();
 		}
-		void* const pv = MM_NEW(n * sizeof(T));
+		void* const pv = MM_NEW(n * sizeof(T), alignof(T));
 		if (!pv) { throw std::bad_alloc(); }
 		return static_cast<pointer>(pv);
 	}

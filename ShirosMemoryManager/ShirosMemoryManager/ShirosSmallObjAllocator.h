@@ -10,10 +10,10 @@ constexpr size_t MAX_SMALL_OBJECT_SIZE = 64;
 class ShirosSmallObjAllocator
 {
 public:
-	ShirosSmallObjAllocator(size_t chunkSize);
+	ShirosSmallObjAllocator(const size_t chunkSize);
 
-	void* Allocate(size_t bytes);
-	void Deallocate(void* p_obj, size_t size_obj);
+	void* Allocate(const size_t bytes);
+	void Deallocate(void* p_obj, const size_t size_obj);
 
 	ShirosSmallObjAllocator(const ShirosSmallObjAllocator&) = delete;
 	ShirosSmallObjAllocator& operator=(const ShirosSmallObjAllocator&) = delete;

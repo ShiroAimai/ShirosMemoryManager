@@ -1,13 +1,14 @@
 #pragma once
 #include "ShirosSmallObjAllocator.h"
+#include "FreeListAllocator.h"
 
-#define MM_NEW(SIZE) ShirosMemoryManager::Allocate(SIZE, __FILE__, __LINE__)
+#define MM_NEW(SIZE, ALIGNMENT) ShirosMemoryManager::Allocate(SIZE, ALIGNMENT, __FILE__, __LINE__)
 #define MM_DELETE(PTR, SIZE) ShirosMemoryManager::Deallocate(PTR, SIZE, __FILE__, __LINE__)
 
-#define MM_NEW_A(LENGTH, SIZE) ShirosMemoryManager::Allocate(LENGTH * SIZE, __FILE__, __LINE__)
+#define MM_NEW_A(LENGTH, SIZE, ALIGNMENT) ShirosMemoryManager::Allocate(LENGTH * SIZE, ALIGNMENT, __FILE__, __LINE__)
 #define MM_DELETE_A(PTR, LENGTH, SIZE) ShirosMemoryManager::Deallocate(PTR, LENGTH * SIZE, __FILE__, __LINE__)
 
-#define MM_MALLOC(SIZE) ShirosMemoryManager::Allocate(SIZE, __FILE__, __LINE__)
+#define MM_MALLOC(SIZE, ALIGNMENT) ShirosMemoryManager::Allocate(SIZE, ALIGNMENT, __FILE__, __LINE__)
 #define MM_FREE(PTR, SIZE) ShirosMemoryManager::Deallocate(PTR, SIZE, __FILE__, __LINE__)
 
 class ShirosMemoryManager /*Singleton*/
@@ -18,14 +19,16 @@ public:
 
 	static size_t CHUNK_SIZE;
 	static size_t MAX_SMALL_OBJ_SIZE;
+	static size_t FREE_LIST_SIZE;
+	static FreeListAllocator::FitPolicy FREE_LIST_POLICY;
 
-	static void* Allocate(size_t ObjSize, char const* file, unsigned long line);
-	static void Deallocate(void* ptr, size_t ObjSize, char const* file, unsigned long line);
+	static void* Allocate(const size_t ObjSize, const size_t Alignment, char const* file, unsigned long line);
+	static void Deallocate(void* ptr, const size_t ObjSize, char const* file, unsigned long line);
 	
 	static void PrintMemoryState();
 private:
 	ShirosMemoryManager();
-	bool CanBeHandledBySmallObjAllocator(size_t ObjSize) const;
+	bool CanBeHandledWithSmallObjAllocator(size_t ObjSize) const;
 
 	static ShirosMemoryManager& Get();
 
@@ -33,5 +36,6 @@ private:
 	size_t m_mem_freed = 0;
 
 	ShirosSmallObjAllocator m_smallObjAllocator;
+	FreeListAllocator m_freeListAllocator;
 };
 

@@ -1,7 +1,7 @@
 #pragma once
 
 //TEST MODES
-#define GLOBAL_OP_OVERLOAD
+//#define GLOBAL_OP_OVERLOAD
 //#define MM_PERFORMANCE
 //#define STL_ALLOCATOR
 
@@ -31,13 +31,18 @@ struct SmallObjTest {
 	short c;
 };
 
+struct LargeObjTest {
+	long b;
+	char a[2048];
+};
+
 void MMPerformanceTest()
 {
 	std::vector<void*> PointersToSmallObjTest;
 	auto start_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	for (int i = 0; i < 1000000; ++i)
 	{
-		void* ptr = MM_NEW(sizeof(SmallObjTest));
+		void* ptr = MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
 		SmallObjTest* p = new (ptr) SmallObjTest();
 		PointersToSmallObjTest.push_back(ptr);
 	}
@@ -101,5 +106,14 @@ int main()
 	std::vector<SmallObjTest, ShirosSTLAllocator<SmallObjTest>> a;
 	a.push_back(SmallObjTest());
 #endif
+
+	ShirosMemoryManager::PrintMemoryState();
+	void* ptr = MM_NEW(sizeof(LargeObjTest), alignof(LargeObjTest));
+	void* ptr1 = MM_NEW(sizeof(LargeObjTest), alignof(LargeObjTest));
+	ShirosMemoryManager::PrintMemoryState();
+	MM_DELETE(ptr, sizeof(LargeObjTest));
+	MM_DELETE(ptr1, sizeof(LargeObjTest));
+	ShirosMemoryManager::PrintMemoryState();
+
 return 0;
 }
