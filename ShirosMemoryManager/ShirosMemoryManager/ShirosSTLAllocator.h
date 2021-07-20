@@ -41,7 +41,8 @@ public:
 
 	inline void deallocate(pointer p, size_type n)
 	{
-		MM_DELETE(p, n);
+		void* ptr = p; //assign to a local var in order to pass a ptr reference
+		MM_DELETE(ptr, n * sizeof(T));
 	}
 
 	inline void construct(pointer p, const T& val)

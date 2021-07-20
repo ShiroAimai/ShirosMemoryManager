@@ -116,8 +116,15 @@ FixedAllocator::~FixedAllocator()
 {
 	if (prev != this || next != this)
 	{
-		prev->next = next;
-		next->prev = prev;
+		if(prev)
+		{
+			prev->next = next;
+		}
+		if (next)
+		{
+			next->prev = prev;
+		}
+		
 		prev = next = nullptr;
 		return;
 	}
@@ -126,7 +133,6 @@ FixedAllocator::~FixedAllocator()
 	
 	for (Chunks::iterator it = m_chunks.begin(); it != m_chunks.end(); ++it)
 	{
-		//assert(it->m_blocksAvailable == m_numBlocks); //assert chunk is empty for a safe delete
 		it->Release();
 	}
 }
@@ -187,6 +193,21 @@ void FixedAllocator::Deallocate(void* ptr)
 	assert(m_lastChunkUsedForDeallocation);
 
 	DeallocateImpl(ptr);
+}
+
+void FixedAllocator::Release()
+{
+	for (Chunks::iterator it = m_chunks.begin(); it != m_chunks.end(); ++it)
+	{
+		it->Release();
+	}
+	m_chunks.clear();
+
+	m_lastChunkUsedForAllocation = nullptr;
+	m_lastChunkUsedForDeallocation = nullptr;
+
+	prev = nullptr;
+	next = nullptr;
 }
 
 void FixedAllocator::DeallocateImpl(void* ptr)

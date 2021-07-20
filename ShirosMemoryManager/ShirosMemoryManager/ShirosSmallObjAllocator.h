@@ -4,7 +4,7 @@
 #include "FixedAllocator.h"
 #include "Mallocator.h"
 
-constexpr size_t MAX_SMALL_OBJECT_SIZE = 64;
+constexpr size_t MAX_SMALL_OBJECT_SIZE = 128;
 
 
 class ShirosSmallObjAllocator
@@ -15,6 +15,7 @@ public:
 	void* Allocate(const size_t bytes);
 	void Deallocate(void* p_obj, const size_t size_obj);
 
+	void Reset();
 	ShirosSmallObjAllocator(const ShirosSmallObjAllocator&) = delete;
 	ShirosSmallObjAllocator& operator=(const ShirosSmallObjAllocator&) = delete;
 

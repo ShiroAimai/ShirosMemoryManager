@@ -55,3 +55,19 @@ void ShirosSmallObjAllocator::Deallocate(void* p_obj, const size_t size_obj)
 	m_lastAllocatorUsedForDeallocation = &*it;
 	m_lastAllocatorUsedForDeallocation->Deallocate(p_obj);
 }
+
+void ShirosSmallObjAllocator::Reset()
+{
+	m_totMemoryAllocated = 0;
+
+	m_lastAllocatorUsedForDeallocation = nullptr;
+	m_lastAllocatorUsedForAllocation = nullptr;
+
+	AllocatorPool::iterator it = m_Pool.begin();
+	for (; it != m_Pool.end(); ++it)
+	{
+		it->Release();
+	}
+
+	m_Pool.clear();
+}

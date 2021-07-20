@@ -17,6 +17,8 @@ public:
 	void* Allocate();
 	void Deallocate(void* ptr);
 
+	void Release();
+
 	inline size_t GetBlockSize() const { return m_blockSize; }
 	inline size_t GetTotalAllocatedMemory() const { return m_chunks.size() * (GetBlockSize() * m_numBlocks);  }
 private:

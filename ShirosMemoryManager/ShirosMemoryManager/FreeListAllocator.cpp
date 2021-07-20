@@ -14,6 +14,12 @@ namespace {
 	const std::size_t ComputePaddingWithHeader(const std::size_t InAddress, const std::size_t InAlignment, const std::size_t InHeaderSize) {
 		return InHeaderSize + ComputePadding(InAddress + InHeaderSize, InAlignment);
 	}
+
+	bool isAligned(const std::size_t address, const std::size_t alignment)
+	{
+		return ComputePadding(address, alignment) == 0;
+	}
+
 }
 
 FreeListAllocator::FreeListAllocator(const std::size_t TotalSize, const FitPolicy policy)
@@ -78,9 +84,12 @@ void* FreeListAllocator::Allocate(const std::size_t AllocationSize, const std::s
 	m_freeList.remove(OutPrevNode, OutResultNode); //detach resultNode from freeList in order to use it
 
 	//setup data for allocation block
-	AllocatedBlockHeader* _header = reinterpret_cast<AllocatedBlockHeader*>(resNodeAddress + paddingToAlign);
+	const std::size_t NewAllocatedBlockHeaderAddress = resNodeAddress + paddingToAlign;
+	AllocatedBlockHeader* _header = reinterpret_cast<AllocatedBlockHeader*>(NewAllocatedBlockHeaderAddress);
 	_header->blockSize = sizeNeeded;
 	_header->padding = paddingToAlign;
+
+	assert(isAligned(NewAllocatedBlockHeaderAddress, alignof(AllocatedBlockHeader)));
 
 	return _header;
 }
@@ -109,7 +118,6 @@ void FreeListAllocator::Deallocate(void* ptr)
 
 void FreeListAllocator::Coalescence(Node* prevBlock, Node* freeBlock)
 {
-	//TODO TEST
 	if (freeBlock->next != nullptr && (reinterpret_cast<std::size_t>(freeBlock) + freeBlock->data.blockSize) == reinterpret_cast<std::size_t>(freeBlock->next))
 	{
 		freeBlock->data.blockSize += freeBlock->next->data.blockSize;
