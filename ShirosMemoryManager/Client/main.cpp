@@ -2,8 +2,8 @@
 
 //TEST MODES
 //#define GLOBAL_OP_OVERLOAD
-//#define MM_PERFORMANCE
-#define STL_ALLOCATOR
+#define MM_TESTS
+//#define STL_ALLOCATOR
 //#define BOTH_ALLOC_USED
 //#define ARRAY_TEST
 
@@ -120,11 +120,10 @@ void CheckStandardBehavior()
 int main()
 {
 
+#ifdef MM_TESTS
+	MMPerformanceTest();
 	CheckMemoryLeak();
 	CheckStandardBehavior();
-
-#ifdef MM_PERFORMANCE
-	MMPerformanceTest();
 #endif
 #ifdef GLOBAL_OP_OVERLOAD
 	ShirosMemoryManager::Get().PrintMemoryState();

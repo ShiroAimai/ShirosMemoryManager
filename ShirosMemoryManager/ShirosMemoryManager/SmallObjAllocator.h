@@ -7,17 +7,17 @@
 constexpr size_t MAX_SMALL_OBJECT_SIZE = 128;
 
 
-class ShirosSmallObjAllocator
+class SmallObjAllocator
 {
 public:
-	ShirosSmallObjAllocator(const size_t chunkSize);
+	SmallObjAllocator(const size_t chunkSize);
 
 	void* Allocate(const size_t bytes);
 	void Deallocate(void* p_obj, const size_t size_obj);
 
 	void Reset();
-	ShirosSmallObjAllocator(const ShirosSmallObjAllocator&) = delete;
-	ShirosSmallObjAllocator& operator=(const ShirosSmallObjAllocator&) = delete;
+	SmallObjAllocator(const SmallObjAllocator&) = delete;
+	SmallObjAllocator& operator=(const SmallObjAllocator&) = delete;
 
 	inline size_t GetTotalAllocatedMemory() const {	return m_totMemoryAllocated; }
 private:

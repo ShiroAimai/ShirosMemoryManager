@@ -1,5 +1,5 @@
 #pragma once
-#include "ShirosSmallObjAllocator.h"
+#include "SmallObjAllocator.h"
 #include "FreeListAllocator.h"
 
 #define MM_NEW(SIZE, ALIGNMENT) ShirosMemoryManager::Get().Allocate(SIZE, ALIGNMENT, __FILE__, __LINE__)
@@ -42,7 +42,7 @@ private:
 	size_t m_mem_requested = 0;
 	size_t m_mem_freed = 0;
 
-	ShirosSmallObjAllocator m_smallObjAllocator;
+	SmallObjAllocator m_smallObjAllocator;
 	FreeListAllocator m_freeListAllocator;
 };
 
