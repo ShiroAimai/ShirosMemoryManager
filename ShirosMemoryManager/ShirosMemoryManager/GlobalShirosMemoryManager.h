@@ -4,24 +4,24 @@
 
 #ifdef GLOBAL_SHIRO_MM
 
-void* operator new(size_t ObjSize)
+void* operator new(std::size_t ObjSize)
 {
-	return MM_NEW(ObjSize);
+	return ShirosMemoryManager::Get().Allocate(ObjSize, ShirosMemoryManager::AllocationType::Single);
 }
 
-void* operator new[](size_t ArraySize, size_t ObjSize)
+void* operator new[](size_t ObjSize)
 {
-	return MM_NEW_A(ArraySize, ObjSize);
+	return ShirosMemoryManager::Get().Allocate(ObjSize, ShirosMemoryManager::AllocationType::Collection);
 }
 
-void operator delete(void* ptr, size_t ObjSize)
+void operator delete(void* ptr, size_t ObjSize) noexcept
 {
-	MM_DELETE(ptr, ObjSize);
+	ShirosMemoryManager::Get().Deallocate(ptr, ObjSize);
 }
 
-void operator delete[](void* ptr, size_t ArraySize, size_t ObjSize)
+void operator delete[](void* ptr) noexcept
 {
-	MM_DELETE_A(ptr, ArraySize, ObjSize);
+	ShirosMemoryManager::Get().Deallocate(ptr);
 }
 
 #endif

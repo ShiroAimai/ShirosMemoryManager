@@ -3,7 +3,6 @@
 #include <stdlib.h> // size_t, malloc, free
 #include <new> // bad_alloc, bad_array_new_length
 
-
 template <typename T>
 class ShirosSTLAllocator
 {
@@ -34,15 +33,14 @@ public:
 		if (n > std::numeric_limits<size_type>::max() / sizeof(T)) {
 			throw std::bad_array_new_length();
 		}
-		void* const pv = MM_NEW(n * sizeof(T), alignof(T));
+		void* const pv = MM_NEW_A(T, n);
 		if (!pv) { throw std::bad_alloc(); }
 		return static_cast<pointer>(pv);
 	}
 
 	inline void deallocate(pointer p, size_type n)
 	{
-		void* ptr = p; //assign to a local var in order to pass a ptr reference
-		MM_DELETE(ptr, n * sizeof(T));
+		MM_DELETE_A(p, n);
 	}
 
 	inline void construct(pointer p, const T& val)

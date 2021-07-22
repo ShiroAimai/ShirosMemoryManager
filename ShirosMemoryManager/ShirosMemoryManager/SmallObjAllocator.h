@@ -16,10 +16,10 @@ public:
 	void Deallocate(void* p_obj, const size_t size_obj);
 
 	void Reset();
+	inline size_t GetTotalAllocatedMemory() const { return m_totMemoryAllocated; }
+
 	SmallObjAllocator(const SmallObjAllocator&) = delete;
 	SmallObjAllocator& operator=(const SmallObjAllocator&) = delete;
-
-	inline size_t GetTotalAllocatedMemory() const {	return m_totMemoryAllocated; }
 private:
 	using AllocatorPool = std::vector<FixedAllocator, Mallocator<FixedAllocator>>;
 	AllocatorPool m_Pool;

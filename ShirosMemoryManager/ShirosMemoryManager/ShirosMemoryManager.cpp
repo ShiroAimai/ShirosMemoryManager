@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ShirosMemoryManager.h"
-#include <cassert>
 
 ShirosMemoryManager& ShirosMemoryManager::Get()
 {
@@ -20,26 +19,32 @@ ShirosMemoryManager::ShirosMemoryManager()
 
 }
 
-void* ShirosMemoryManager::Allocate(const size_t ObjSize, const size_t Alignment, char const* file, unsigned long line)
-{
-	cout << "Requested allocation of " << ObjSize << " bytes requested by line " << line << " in file " << file << endl;
-	
+void* ShirosMemoryManager::Allocate(const size_t ObjSize, const AllocationType AllocType, const size_t Alignment /* = alignof(std::max_align_t) */)
+{	
 	void* p_res = nullptr;
 
 	if (CanBeHandledWithSmallObjAllocator(ObjSize))
 	{
 		p_res = m_smallObjAllocator.Allocate(ObjSize);
-		cout << "Requested size is less or equal to MAX_SMALL_OBJECT_SIZE. Allocated memory using SmallObjAllocator" << endl;
+		cout << "Requested size is less or equal MAX_SMALL_OBJECT_SIZE(" << MAX_SMALL_OBJECT_SIZE << ")";
+		cout << ". Allocated memory using SmallObjAllocator" << endl;
 	}
 	else
 	{
 		p_res = m_freeListAllocator.Allocate(ObjSize, Alignment);
-		cout << "Requested size is larger than MAX_SMALL_OBJECT_SIZE. Allocated memory using FreeListAllocator" << endl;
+		cout << "Requested size is larger than MAX_SMALL_OBJECT_SIZE(" << MAX_SMALL_OBJECT_SIZE << ")";
+		cout << ". Allocated memory using FreeListAllocator" << endl;
 	}
 	
 	if (p_res)
 	{
-		cout << "Allocated memory starting from address " << p_res << endl;
+		cout << "Allocated " << ObjSize << " bytes from address " << p_res << endl;
+		
+		if (AllocType == AllocationType::Collection)
+		{
+			m_arrayAllocationMap[p_res] = ObjSize;
+		}
+
 		m_mem_used += ObjSize;
 		m_mem_requested += ObjSize;
 	}
@@ -51,12 +56,29 @@ void* ShirosMemoryManager::Allocate(const size_t ObjSize, const size_t Alignment
 	return p_res;
 }
 
-void ShirosMemoryManager::Deallocate(void*& ptr,const size_t ObjSize, char const* file, unsigned long line)
+void ShirosMemoryManager::Deallocate(void* ptr, size_t ObjSize /* = 0 */)
 {
-	if (!ptr || ObjSize == 0) return; //bad arguments
+	if (!ptr) //bad argument
+	{
+		cout << "Aborting deallocation. Bad argument: address: " << ptr << endl;
+	}
 
-	cout << "Requested deallocation of " << ObjSize << " bytes from address " << ptr << " requested by line " << line << " in file " << file << endl;
-	
+	//if ObjSize is empty, check if ptr is key of internal array map 
+	if (ObjSize == 0)
+	{
+		std::map<void*, size_t>::iterator it = m_arrayAllocationMap.find(ptr);
+		if (it != m_arrayAllocationMap.end())
+		{
+			ObjSize = it->second;
+			m_arrayAllocationMap.erase(it);
+		}
+		if (ObjSize == 0) //bad argument
+		{
+			cout << "Aborting deallocation. Bad argument size: " << ObjSize << endl;
+			return;
+		}
+	}
+
 	if (CanBeHandledWithSmallObjAllocator(ObjSize))
 	{
 		m_smallObjAllocator.Deallocate(ptr, ObjSize);
@@ -66,10 +88,10 @@ void ShirosMemoryManager::Deallocate(void*& ptr,const size_t ObjSize, char const
 		m_freeListAllocator.Deallocate(ptr);
 	}
 
+	cout << "Deallocated " << ObjSize << " bytes from address " << ptr << endl;
+
 	m_mem_used -= ObjSize;
 	m_mem_freed += ObjSize;
-
-	ptr = nullptr; //prevents repeated calls with this ptr
 }
 
 bool ShirosMemoryManager::CanBeHandledWithSmallObjAllocator(size_t ObjSize) const

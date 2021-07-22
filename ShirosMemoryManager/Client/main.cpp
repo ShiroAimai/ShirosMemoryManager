@@ -1,11 +1,11 @@
 #pragma once
 
 //TEST MODES
-//#define GLOBAL_OP_OVERLOAD
+#define GLOBAL_OP_OVERLOAD
 #define MM_TESTS
-//#define STL_ALLOCATOR
-//#define BOTH_ALLOC_USED
-//#define ARRAY_TEST
+#define STL_ALLOCATOR
+#define BOTH_ALLOC_USED
+#define ARRAY_TEST
 
 #include <iostream>
 #include "ShirosMemoryManager.h"
@@ -27,6 +27,7 @@ using std::chrono::system_clock;
 using std::cout;
 using std::endl;
 
+
 //24 bytes
 struct SmallObjTest {
 	long long a;
@@ -45,12 +46,11 @@ void MMPerformanceTest()
 {
 	cout << "====== MM PERFORMANCE TEST ======" << endl;
 
-	std::vector<void*> PointersToSmallObjTest;
+	std::vector<SmallObjTest*> PointersToSmallObjTest;
 	auto start_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	for (int i = 0; i < 1000000; ++i)
 	{
-		void* ptr = MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
-		SmallObjTest* p = new (ptr) SmallObjTest();
+		SmallObjTest* ptr = MM_NEW(alignof(SmallObjTest)) SmallObjTest();
 		PointersToSmallObjTest.push_back(ptr);
 	}
 	for (int i = 0; i < 1000000; ++i)
@@ -87,7 +87,7 @@ void CheckMemoryLeak() {
 	Instance.PrintMemoryState();
 	
 	{
-		MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
+		MM_NEW(alignof(SmallObjTest)) SmallObjTest();
 	}
 
 	Instance.PrintMemoryState();
@@ -107,7 +107,7 @@ void CheckStandardBehavior()
 	ShirosMemoryManager& Instance = ShirosMemoryManager::Get();
 
 	Instance.PrintMemoryState();
-	void* ptr = MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
+	SmallObjTest* ptr = MM_NEW(alignof(SmallObjTest)) SmallObjTest();
 	Instance.PrintMemoryState();
 	MM_DELETE(ptr, sizeof(SmallObjTest));
 	
@@ -121,46 +121,55 @@ int main()
 {
 
 #ifdef MM_TESTS
-	MMPerformanceTest();
+	//MMPerformanceTest();
 	CheckMemoryLeak();
 	CheckStandardBehavior();
 #endif
 #ifdef GLOBAL_OP_OVERLOAD
 	ShirosMemoryManager::Get().PrintMemoryState();
-	void* ptr = new SmallObjTest();
-	void* ptr2 = new SmallObjTest();
-	void* ptr3 = new SmallObjTest();
-	void* ptr4 = new SmallObjTest();
-	void* ptr5 = new SmallObjTest();
-	void* ptr6 = new SmallObjTest();
-	void* ptr7 = new SmallObjTest();
-	void* ptr8 = new SmallObjTest();
-	void* ptr9 = new SmallObjTest();
-	void* ptr10 = new SmallObjTest();
+	SmallObjTest* ptr_glob = new SmallObjTest();
+	SmallObjTest* ptr_glob2 = new SmallObjTest();
+	SmallObjTest* ptr_glob3 = new SmallObjTest();
+	SmallObjTest* ptr_glob4 = new SmallObjTest();
+	SmallObjTest* ptr_glob5 = new SmallObjTest();
+	SmallObjTest* ptr_glob6 = new SmallObjTest();
+	SmallObjTest* ptr_glob7 = new SmallObjTest();
+	SmallObjTest* ptr_glob8 = new SmallObjTest();
+	SmallObjTest* ptr_glob9 = new SmallObjTest();
+	SmallObjTest* ptr_glob10 = new SmallObjTest();
 	ShirosMemoryManager::Get().PrintMemoryState();
-	::operator delete(ptr, sizeof(SmallObjTest));
-	::operator delete(ptr2, sizeof(SmallObjTest));
-	::operator delete(ptr3, sizeof(SmallObjTest));
-	::operator delete(ptr4, sizeof(SmallObjTest));
-	::operator delete(ptr5, sizeof(SmallObjTest));
-	::operator delete(ptr6, sizeof(SmallObjTest));
-	::operator delete(ptr7, sizeof(SmallObjTest));
-	::operator delete(ptr8, sizeof(SmallObjTest));
-	::operator delete(ptr9, sizeof(SmallObjTest));
-	::operator delete(ptr10, sizeof(SmallObjTest));
+	delete ptr_glob;
+	delete ptr_glob2;
+	delete ptr_glob3;
+	delete ptr_glob4;
+	delete ptr_glob5;
+	delete ptr_glob6;
+	delete ptr_glob7;
+	delete ptr_glob8;
+	delete ptr_glob9;
+	delete ptr_glob10;
 	ShirosMemoryManager::Get().PrintMemoryState();
+
+	ShirosMemoryManager::Get().PrintMemoryState();
+	SmallObjTest* arr = new SmallObjTest[5];
+	SmallObjTest* arr2 = new SmallObjTest[100];
+	ShirosMemoryManager::Get().PrintMemoryState();
+	delete[] arr;
+	delete[] arr2;
+	ShirosMemoryManager::Get().PrintMemoryState();
+
 #endif
 #ifdef BOTH_ALLOC_USED
 	ShirosMemoryManager::Get().PrintMemoryState();
-	void* ptr = MM_NEW(sizeof(LargeObjTest), alignof(LargeObjTest));
-	void* ptr1 = MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
-	void* ptr2 = MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
-	void* ptr3 = MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
-	void* ptr4 = MM_NEW(sizeof(LargeObjTest), alignof(LargeObjTest));
-	void* ptr5 = MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
-	void* ptr6 = MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
-	void* ptr7 = MM_NEW(sizeof(SmallObjTest), alignof(SmallObjTest));
-	void* ptr8 = MM_NEW(sizeof(LargeObjTest), alignof(LargeObjTest));
+	LargeObjTest* ptr = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	SmallObjTest* ptr1 = MM_NEW(alignof(SmallObjTest)) SmallObjTest();
+	SmallObjTest* ptr2 = MM_NEW(alignof(SmallObjTest)) SmallObjTest();
+	SmallObjTest* ptr3 = MM_NEW(alignof(SmallObjTest)) SmallObjTest();
+	LargeObjTest* ptr4 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	SmallObjTest* ptr5 = MM_NEW(alignof(SmallObjTest)) SmallObjTest();
+	SmallObjTest* ptr6 = MM_NEW(alignof(SmallObjTest)) SmallObjTest();
+	SmallObjTest* ptr7 = MM_NEW(alignof(SmallObjTest)) SmallObjTest();
+	LargeObjTest* ptr8 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
 	ShirosMemoryManager::Get().PrintMemoryState();
 	MM_DELETE(ptr, sizeof(LargeObjTest));
 	MM_DELETE(ptr1, sizeof(SmallObjTest));
@@ -175,11 +184,11 @@ int main()
 #endif
 #ifdef ARRAY_TEST
 	ShirosMemoryManager::Get().PrintMemoryState();
-	void* ptr = MM_NEW_A(20, sizeof(LargeObjTest), alignof(LargeObjTest));
-	void* ptr1 = MM_NEW_A(5, sizeof(SmallObjTest), alignof(SmallObjTest));
+	void* ptr_largeArr = MM_NEW_A(LargeObjTest, 20);
+	void* ptr_smallArr = MM_NEW_A(SmallObjTest, 5);
 	ShirosMemoryManager::Get().PrintMemoryState();
-	MM_DELETE_A(ptr1, 5, sizeof(SmallObjTest));
-	MM_DELETE_A(ptr, 20, sizeof(LargeObjTest));
+	MM_DELETE_A(ptr_smallArr, 5);
+	MM_DELETE_A(ptr_largeArr, 20);
 	ShirosMemoryManager::Get().PrintMemoryState();
 #endif
 #ifdef STL_ALLOCATOR
