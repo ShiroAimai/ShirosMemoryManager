@@ -9,5 +9,13 @@
 
 // aggiungere qui le intestazioni da precompilare
 #include "framework.h"
+#include <iostream>
+#include <vector>
+#include <cassert>
+#include <algorithm>
+
+using std::cout;
+using std::endl;
+using std::size_t;
 
 #endif //PCH_H
