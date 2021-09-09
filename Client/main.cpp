@@ -1,8 +1,9 @@
 #pragma once
 
 //TEST MODES
+#define MM_TESTS 
 #define GLOBAL_OP_OVERLOAD
-#define MM_TESTS
+#define LARGE_OBJ_TEST
 #define STL_ALLOCATOR
 #define BOTH_ALLOC_USED
 #define ARRAY_TEST
@@ -42,40 +43,102 @@ struct LargeObjTest {
 	char b[2048];
 };
 
-void MMPerformanceTest()
+
+void SmallObjAllocPerformanceTest(ShirosMemoryManager& Instance)
 {
-	cout << "====== MM PERFORMANCE TEST ======" << endl;
+	cout << "====== SmallObjects PERFORMANCE TEST ======" << endl;
+
+	constexpr int TestSize = 1000000;
+	Instance.PrintMemoryState();
 
 	std::vector<SmallObjTest*> PointersToSmallObjTest;
 	auto start_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-	for (int i = 0; i < 1000000; ++i)
+	for (int i = 0; i < TestSize; ++i)
 	{
 		SmallObjTest* ptr = MM_NEW(alignof(SmallObjTest)) SmallObjTest();
 		PointersToSmallObjTest.push_back(ptr);
 	}
-	for (int i = 0; i < 1000000; ++i)
+	Instance.PrintMemoryState();
+	for (int i = 0; i < TestSize; ++i)
 	{
 		MM_DELETE(PointersToSmallObjTest[i], sizeof(SmallObjTest));
 	}
 	auto end_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	long long delta = end_millisec - start_millisec;
-	cout << "SmallObjAllocator takes :" << std::to_string((float)delta / 1000) << " to complete" << endl; //convert to seconds
+	Instance.PrintMemoryState();
+	cout << "ShirosMemoryManager takes :" << std::to_string((float)delta / 1000) << " to complete" << endl; //convert to seconds
 
 	std::vector<SmallObjTest*> PointersToSmallObjTest2;
 
 	start_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-	for (int i = 0; i < 1000000; ++i)
+	for (int i = 0; i < TestSize; ++i)
 	{
 		SmallObjTest* ptr = new SmallObjTest();
 		PointersToSmallObjTest2.push_back(ptr);
 	}
-	for (int i = 0; i < 1000000; ++i)
+	for (int i = 0; i < TestSize; ++i)
 	{
 		delete PointersToSmallObjTest2[i];
 	}
 	end_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 	delta = end_millisec - start_millisec;
 	cout << "Default Allocator takes :" << std::to_string((float)delta / 1000) << " to complete" << endl; //convert to seconds
+
+	cout << "====== END OF SmallObjects PERFORMANCE TEST ======" << endl;
+}
+
+void LargeObjAlloctPerformanceTest(ShirosMemoryManager& Instance)
+{
+	cout << "====== LargeObjects PERFORMANCE TEST ======" << endl;
+
+	constexpr int TestSize = 10000;
+	Instance.PrintMemoryState();
+
+	std::vector<LargeObjTest*> PointersToSmallObjTest;
+	auto start_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+	for (int i = 0; i < TestSize; ++i)
+	{
+		LargeObjTest* ptr = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+		PointersToSmallObjTest.push_back(ptr);
+	}
+	Instance.PrintMemoryState();
+	for (int i = 0; i < TestSize; ++i)
+	{
+		MM_DELETE(PointersToSmallObjTest[i], sizeof(LargeObjTest));
+	}
+	auto end_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+	long long delta = end_millisec - start_millisec;
+	Instance.PrintMemoryState();
+	cout << "ShirosMemoryManager takes :" << std::to_string((float)delta / 1000) << " to complete" << endl; //convert to seconds
+
+	std::vector<LargeObjTest*> PointersToSmallObjTest2;
+
+	start_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+	for (int i = 0; i < TestSize; ++i)
+	{
+		LargeObjTest* ptr = new LargeObjTest();
+		PointersToSmallObjTest2.push_back(ptr);
+	}
+	for (int i = 0; i < TestSize; ++i)
+	{
+		delete PointersToSmallObjTest2[i];
+	}
+	end_millisec = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+	delta = end_millisec - start_millisec;
+	cout << "Default Allocator takes :" << std::to_string((float)delta / 1000) << " to complete" << endl; //convert to seconds
+
+	cout << "====== END OF LargeObjects PERFORMANCE TEST ======" << endl;
+
+}
+
+void MMPerformanceTest()
+{
+	cout << "====== MM PERFORMANCE TEST ======" << endl;
+
+	ShirosMemoryManager& Instance = ShirosMemoryManager::Get();
+
+	SmallObjAllocPerformanceTest(Instance);
+	LargeObjAlloctPerformanceTest(Instance);
 
 	cout << "====== END OF MM PERFORMANCE TEST ======" << endl;
 }
@@ -119,9 +182,11 @@ void CheckStandardBehavior()
 
 int main()
 {
-
 #ifdef MM_TESTS
-	//MMPerformanceTest();
+	/* To properly check this test results disable macro GLOBAL_OP_OVERLOAD
+	 * Execute test in Release configuration in order to have a good comparison between default allocator and custom one
+	*/
+	//MMPerformanceTest(); 
 	CheckMemoryLeak();
 	CheckStandardBehavior();
 #endif
@@ -158,6 +223,45 @@ int main()
 	delete[] arr2;
 	ShirosMemoryManager::Get().PrintMemoryState();
 
+#endif
+#ifdef LARGE_OBJ_TEST
+	ShirosMemoryManager::Get().PrintMemoryState();
+
+	LargeObjTest* l_ptr = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	LargeObjTest* l_ptr2 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	LargeObjTest* l_ptr3 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	LargeObjTest* l_ptr4 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	LargeObjTest* l_ptr5 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	LargeObjTest* l_ptr6 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	LargeObjTest* l_ptr7 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	LargeObjTest* l_ptr8 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+
+	ShirosMemoryManager::Get().PrintMemoryState();
+	
+	MM_DELETE(l_ptr, sizeof(LargeObjTest));
+	MM_DELETE(l_ptr2, sizeof(LargeObjTest));
+	MM_DELETE(l_ptr3, sizeof(LargeObjTest));
+	MM_DELETE(l_ptr4, sizeof(LargeObjTest));
+	MM_DELETE(l_ptr5, sizeof(LargeObjTest));
+	MM_DELETE(l_ptr6, sizeof(LargeObjTest));
+
+	ShirosMemoryManager::Get().PrintMemoryState();
+
+	LargeObjTest* l_ptr9 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+	LargeObjTest* l_ptr10 = MM_NEW(alignof(LargeObjTest)) LargeObjTest();
+
+	MM_DELETE(l_ptr7, sizeof(LargeObjTest));
+	MM_DELETE(l_ptr8, sizeof(LargeObjTest));
+	MM_DELETE(l_ptr9, sizeof(LargeObjTest));
+	MM_DELETE(l_ptr10, sizeof(LargeObjTest));
+
+	LargeObjTest* l_ptr11= MM_NEW_A(LargeObjTest, 8);
+	LargeObjTest* l_ptr12 = MM_NEW_A(LargeObjTest, 4);
+
+	MM_DELETE_A(l_ptr11, 8);
+	MM_DELETE_A(l_ptr12, 4);
+
+	ShirosMemoryManager::Get().PrintMemoryState();
 #endif
 #ifdef BOTH_ALLOC_USED
 	ShirosMemoryManager::Get().PrintMemoryState();
@@ -202,5 +306,7 @@ int main()
 	ShirosMemoryManager::Get().PrintMemoryState();
 	a.clear();
 #endif
+
 	return 0;
+
 }

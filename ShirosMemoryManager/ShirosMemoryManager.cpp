@@ -1,52 +1,66 @@
 #include "pch.h"
 #include "ShirosMemoryManager.h"
 
+ShirosMMCreationParams ShirosMemoryManager::mmCreationParams = ShirosMMCreationParams();
+
 ShirosMemoryManager& ShirosMemoryManager::Get()
 {
 	static ShirosMemoryManager mm;
 	return mm;
 }
 
-size_t ShirosMemoryManager::CHUNK_SIZE = DEFAULT_CHUNK_SIZE;
-size_t ShirosMemoryManager::MAX_SMALL_OBJ_SIZE = MAX_SMALL_OBJECT_SIZE;
-size_t ShirosMemoryManager::FREE_LIST_SIZE = 65536;  // 64 KB
-FreeListAllocator::FitPolicy ShirosMemoryManager::FREE_LIST_POLICY = FreeListAllocator::FitPolicy::BEST_FIT;
+void ShirosMemoryManager::Init(const ShirosMMCreationParams& params)
+{
+	mmCreationParams = params;
+}
 
 ShirosMemoryManager::ShirosMemoryManager()
-	: m_smallObjAllocator(CHUNK_SIZE),
-	m_freeListAllocator(FREE_LIST_SIZE, FREE_LIST_POLICY)
+	: m_smallObjAllocator(mmCreationParams.chunkSize),
+	m_freeListAllocator(mmCreationParams.freeListMemoryPoolSize, mmCreationParams.freeListFitPolicy)
 {
 
 }
 
-void* ShirosMemoryManager::Allocate(const size_t ObjSize, const AllocationType AllocType, const size_t Alignment /* = alignof(std::max_align_t) */)
+ShirosMemoryManager::~ShirosMemoryManager()
+{
+	cout << "===== RELEASED ALLOCATED MEMORY ======" << endl;
+}
+
+void* ShirosMemoryManager::Allocate(size_t ObjSize, AllocationType AllocType, size_t Alignment /* = alignof(std::max_align_t) */)
 {	
 	void* p_res = nullptr;
 
+	size_t AllocationSize;
 	if (CanBeHandledWithSmallObjAllocator(ObjSize))
 	{
-		p_res = m_smallObjAllocator.Allocate(ObjSize);
+		p_res = m_smallObjAllocator.Allocate(ObjSize, AllocationSize);
+#ifdef MM_DEBUG
 		cout << "Requested size is less or equal MAX_SMALL_OBJECT_SIZE(" << MAX_SMALL_OBJECT_SIZE << ")";
 		cout << ". Allocated memory using SmallObjAllocator" << endl;
+#endif
 	}
 	else
 	{
-		p_res = m_freeListAllocator.Allocate(ObjSize, Alignment);
+		p_res = m_freeListAllocator.Allocate(ObjSize, Alignment, AllocationSize);
+#ifdef MM_DEBUG
 		cout << "Requested size is larger than MAX_SMALL_OBJECT_SIZE(" << MAX_SMALL_OBJECT_SIZE << ")";
 		cout << ". Allocated memory using FreeListAllocator" << endl;
+#endif
 	}
 	
-	if (p_res)
+	if (p_res && AllocationSize > 0)
 	{
-		cout << "Allocated " << ObjSize << " bytes from address " << p_res << endl;
+#ifdef MM_DEBUG
+		cout << "Allocated " << AllocationSize << " bytes from address " << p_res << endl;
+#endif
 		
 		if (AllocType == AllocationType::Collection)
 		{
 			m_arrayAllocationMap[p_res] = ObjSize;
 		}
 
-		m_mem_used += ObjSize;
-		m_mem_requested += ObjSize;
+		m_mem_used += AllocationSize;
+		m_mem_allocated += AllocationSize;
 	}
 	else
 	{
@@ -61,6 +75,7 @@ void ShirosMemoryManager::Deallocate(void* ptr, size_t ObjSize /* = 0 */)
 	if (!ptr) //bad argument
 	{
 		cout << "Aborting deallocation. Bad argument: address: " << ptr << endl;
+		return;
 	}
 
 	//if ObjSize is empty, check if ptr is key of internal array map 
@@ -79,40 +94,44 @@ void ShirosMemoryManager::Deallocate(void* ptr, size_t ObjSize /* = 0 */)
 		}
 	}
 
+	size_t DeallocatedSize = 0;
 	if (CanBeHandledWithSmallObjAllocator(ObjSize))
 	{
-		m_smallObjAllocator.Deallocate(ptr, ObjSize);
+		DeallocatedSize = m_smallObjAllocator.Deallocate(ptr, ObjSize);
 	}
 	else 
 	{
-		m_freeListAllocator.Deallocate(ptr);
+		DeallocatedSize = m_freeListAllocator.Deallocate(ptr);
 	}
+	
+	assert(DeallocatedSize > 0 && "Deallocated size must be greater than zero");
 
-	cout << "Deallocated " << ObjSize << " bytes from address " << ptr << endl;
+#ifdef MM_DEBUG
+	cout << "Deallocated " << DeallocatedSize << " bytes from address " << ptr << endl;
+#endif
 
-	m_mem_used -= ObjSize;
-	m_mem_freed += ObjSize;
+	m_mem_used -= DeallocatedSize;
+	m_mem_freed += DeallocatedSize;
 }
 
 bool ShirosMemoryManager::CanBeHandledWithSmallObjAllocator(size_t ObjSize) const
 {
-	return ObjSize <= MAX_SMALL_OBJECT_SIZE;
+	return ObjSize <= mmCreationParams.maxSizeForSmallObj;
 }
 
 void ShirosMemoryManager::PrintMemoryState()
 {
-
 	size_t m_totAllocatedMemory = m_smallObjAllocator.GetTotalAllocatedMemory() + m_freeListAllocator.GetTotalAllocatedMemory();
 	cout << "===== MEMORY STATE ======" << endl;
 	cout << "| Total Memory Allocated: " << m_totAllocatedMemory << " |" << endl;
-	cout << "| Memory Requested: " << m_mem_requested << " |" << endl;
+	cout << "| Memory Allocated: " << m_mem_allocated << " |" << endl;
 	cout << "| Memory Freed: " << m_mem_freed << " |" << endl;
 	cout << "| Memory Currently used: " << m_mem_used << " |" << endl;
 }
 
 void ShirosMemoryManager::Reset()
 {
-	m_mem_requested = 0;
+	m_mem_allocated = 0;
 	m_mem_freed = 0;
 	m_mem_used = 0;
 	m_freeListAllocator.Reset();

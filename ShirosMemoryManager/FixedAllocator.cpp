@@ -7,7 +7,7 @@ void FixedAllocator::Chunk::Init(size_t blockSize, unsigned char blocks)
 	assert(blocks > 0); //chunk must be composed of at least one element (i.e an element of max size)
 	assert((blockSize * blocks) / blockSize == blocks); // check for overflow
 
-	m_data = static_cast<unsigned char*>(std::malloc(blockSize * blocks)); //reserve free store memory for the chunk. 
+	m_data = static_cast<unsigned char*>(std::malloc(blockSize * blocks)); //reserve heap memory for the chunk. 
 	Reset(blockSize, blocks);
 }
 
@@ -18,7 +18,7 @@ void* FixedAllocator::Chunk::Allocate(size_t blockSize)
 	assert((m_firstAvailableBlock * blockSize) / blockSize == m_firstAvailableBlock); //overflow check
 	
 	unsigned char* result = m_data + (m_firstAvailableBlock * blockSize); //simple arithmetic operation to find new block start
-	m_firstAvailableBlock = *result; //copy index of new block
+	m_firstAvailableBlock = *result; //copy index of next available block contained in result
 	
 	--m_blocksAvailable; //decrement available blocks in chunk
 	
@@ -27,14 +27,16 @@ void* FixedAllocator::Chunk::Allocate(size_t blockSize)
 
 void FixedAllocator::Chunk::Deallocate(void* p, size_t blockSize)
 {
-	assert(p >= m_data); //ensure ptr is in inside the memory managed by this chunk
+	assert(p >= m_data); //ensure ptr is greater or equal to the first address contained in m_data
 
 	unsigned char* toDealloc = static_cast<unsigned char*>(p);
 
-	assert((toDealloc - m_data) % blockSize == 0); //alignment check to blockSize provided in input
+	//Address must be aligned to blockSize, so module should evaluate to 0
+	assert((toDealloc - m_data) % blockSize == 0); //alignment check to blockSize provided in input. 
 
-	*toDealloc = m_firstAvailableBlock; //ovverride toDealloc block value
-	m_firstAvailableBlock = static_cast<unsigned char>((toDealloc - m_data) / blockSize); //assign the index of the just deallocated block as m_firstAvailableBlock
+	*toDealloc = m_firstAvailableBlock; //ovverride toDealloc block value with current index of m_firstAvailableBlock
+	//assign the index of the just deallocated block as m_firstAvailableBlock
+	m_firstAvailableBlock = static_cast<unsigned char>((toDealloc - m_data) / blockSize); 
 
 	assert(m_firstAvailableBlock == (toDealloc - m_data) / blockSize);
 
@@ -53,6 +55,7 @@ void FixedAllocator::Chunk::Reset(size_t blockSize, unsigned char blocks)
 	unsigned char* p_temp = m_data;
 	for (unsigned char i = 0; i != blocks; p_temp += blockSize)
 	{
+		//each block starting point has the index of the block that follows
 		*p_temp = ++i; //re-assign memory to override eventual garbage
 	}
 }
@@ -69,17 +72,21 @@ FixedAllocator::FixedAllocator(size_t ChunkSize /*= 0*/,size_t BlockSize /*= 0*/
 	m_lastChunkUsedForDeallocation(nullptr)
 {
 	assert(BlockSize > 0); //ensure you're not creating an allocator of size 0, min. 1
+	
 	prev = next = this; 
-	size_t AllocatorChunkSize = ChunkSize > 0 ? ChunkSize : DEFAULT_CHUNK_SIZE;
-	size_t numBlocks = AllocatorChunkSize / BlockSize;
+
+	//if input ChunkSize is greater than 0 use that, otherwise fallback
+	size_t AllocatorChunkSize = ChunkSize > 0 ? ChunkSize : DEFAULT_CHUNK_SIZE; 
+	//compute effective number of blocks per chunk
+	size_t numBlocks = AllocatorChunkSize / BlockSize; 
 	
 	if (numBlocks > UCHAR_MAX)
 	{
-		numBlocks = UCHAR_MAX;
+		numBlocks = UCHAR_MAX; //cap chunk block to the value of UCHAR_MAX(255)
 	}
 	else if (numBlocks == 0)
 	{
-		numBlocks = 8 * BlockSize;
+		numBlocks = CHAR_BIT * BlockSize; //fallback
 	}
 
 	m_numBlocks = static_cast<unsigned char>(numBlocks);
@@ -91,15 +98,17 @@ FixedAllocator::FixedAllocator(const FixedAllocator& other)
 	m_numBlocks(other.m_numBlocks),
 	m_chunks(other.m_chunks)
 {
+	//insert constructed Allocator between other and the previous element following other
 	prev = &other;
 	next = other.next;
 	other.next->prev = this;
 	other.next = this;
 
+	//compute local address for last chunk used for allocation using the offset of other.m_lastChunkUsedForAllocation address from other starting address
 	m_lastChunkUsedForAllocation = other.m_lastChunkUsedForAllocation
 		? &m_chunks.front() + (other.m_lastChunkUsedForAllocation - &other.m_chunks.front())
 		: 0;
-
+	//compute local address for last chunk used for deallocation using the offset of other.m_lastChunkUsedForDeallocation address from other starting address
 	m_lastChunkUsedForDeallocation = other.m_lastChunkUsedForDeallocation
 		? &m_chunks.front() + (other.m_lastChunkUsedForDeallocation - &other.m_chunks.front())
 		: 0;
@@ -114,12 +123,15 @@ FixedAllocator& FixedAllocator::operator=(const FixedAllocator& other)
 
 FixedAllocator::~FixedAllocator()
 {
+	//if allocator is not already detached from other FixedAllocators in list
 	if (prev != this || next != this)
 	{
+		//assign FixedAllocator that follows this to previous one
 		if(prev)
 		{
 			prev->next = next;
 		}
+		//assign FixedAllocator that precedes this to next one
 		if (next)
 		{
 			next->prev = prev;
@@ -129,8 +141,9 @@ FixedAllocator::~FixedAllocator()
 		return;
 	}
 
-	assert(prev == next); //unique fixed allocator
+	assert(prev == next); //detached fixed allocator
 	
+	//release all chunks for this FixedAllocator
 	for (Chunks::iterator it = m_chunks.begin(); it != m_chunks.end(); ++it)
 	{
 		it->Release();
@@ -197,12 +210,14 @@ void FixedAllocator::Deallocate(void* ptr)
 
 void FixedAllocator::Release()
 {
+	//clear memory allocated for this FixedAllocator chunks
 	for (Chunks::iterator it = m_chunks.begin(); it != m_chunks.end(); ++it)
 	{
 		it->Release();
 	}
-	m_chunks.clear();
+	m_chunks.clear(); //remove all chunks
 
+	//reset addresses
 	m_lastChunkUsedForAllocation = nullptr;
 	m_lastChunkUsedForDeallocation = nullptr;
 
@@ -216,7 +231,7 @@ void FixedAllocator::DeallocateImpl(void* ptr)
 	assert(m_lastChunkUsedForDeallocation->m_data <= ptr); 
 	assert(m_lastChunkUsedForDeallocation->m_data + (m_numBlocks * m_blockSize) > ptr);
 
-	//we're not releasing memory here, only resetting
+	//we're not releasing memory here, only clearing the block pointed by ptr 
 	m_lastChunkUsedForDeallocation->Deallocate(ptr, m_blockSize);
 
 	if (m_lastChunkUsedForDeallocation->m_blocksAvailable == m_numBlocks) //Last Chunk used for deallocation now is empty
@@ -306,6 +321,6 @@ FixedAllocator::Chunk* FixedAllocator::FindInVicinity(void* ptr)
 		}
 	}
 
-	assert(false); //make sure if we're here to signal that there's a problem
+	assert(false); //signal that there's a problem if we ended up here
 	return 0;
 }
